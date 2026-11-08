@@ -1,0 +1,153 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Stream Overlay</title>
+<style>
+@font-face{font-family:Pix;src:url(PressStart2P-Regular.ttf)}
+:root{--ink:#000;--panel:#0a0a0af0;--line:#2e2e2e;--o:#ff8a00;--o2:#ffb347;--txt:#e6e6e6;--dim:#777}
+*{box-sizing:border-box;margin:0}html,body{width:1920px;height:1080px;overflow:hidden;background:transparent;color:var(--txt);font-family:Pix,Consolas,monospace}
+.view{position:absolute;inset:0;display:none}
+canvas{position:absolute;image-rendering:pixelated;display:block}
+.frame{position:absolute;border:4px solid var(--line)}
+.frame::before,.frame::after{content:"";position:absolute;width:32px;height:32px;border:4px solid var(--o)}
+.frame::before{left:-4px;top:-4px;border-right:0;border-bottom:0}.frame::after{right:-4px;bottom:-4px;border-left:0;border-top:0}
+.tag{position:absolute;padding:7px 10px 5px;background:var(--o);color:#000;font-size:14px}
+.panel{position:absolute;background:var(--panel);border:4px solid var(--line)}
+#bar{left:24px;right:24px;overflow:hidden;background:#000}
+#barin{position:absolute;inset:0;display:flex;align-items:center;gap:22px;padding:0 28px 0 20px}
+#barin img{width:132px;height:132px;image-rendering:pixelated;border-radius:50%}
+.title{font-size:46px;color:#f2f2f2;white-space:nowrap}
+.prompt{color:var(--o);text-shadow:0 0 12px #ff8a0099}
+.cursor{animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.live{display:flex;align-items:center;gap:12px;font-size:18px;color:var(--o);background:#000;padding:8px 10px}
+.dot{width:14px;height:14px;background:var(--o);animation:blink 1.6s steps(1) infinite}
+.spacer{flex:1}.clock{white-space:nowrap}.gh{font-size:15px;color:var(--o2);background:#000;padding:8px 10px;white-space:nowrap}.clock{font-size:26px;color:var(--o);background:#000;padding:8px 10px}
+.chat{overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:12px 14px;gap:8px;font:20px/1.3 Consolas,monospace}
+.chat .n{font-weight:700;color:var(--o2)}.chat div{overflow-wrap:anywhere}
+.idle{color:var(--dim)}
+.center{position:absolute;left:0;right:0;top:530px;display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center}
+.big{font-size:70px;color:#f2f2f2;white-space:nowrap;text-shadow:0 6px #000}
+.sub{font-size:22px;color:var(--o)}</style></head><body>
+<section class="view" data-v="main">
+ <div class="frame" style="left:24px;top:24px;width:1596px;height:837px"></div>
+ <div style="position:absolute;left:1644px;top:24px;width:252px;height:252px;box-shadow:inset 0 0 36px 22px #000"></div>
+ <div class="frame" style="left:1644px;top:24px;width:252px;height:252px"></div><div class="tag" style="left:1644px;top:24px">CAM</div>
+ <div class="panel chat" style="left:1644px;top:300px;width:252px;height:561px"></div>
+ <div class="panel" id="bar" style="top:885px;height:171px"><canvas class="px" data-w="468" data-h="41" data-mode="bar" style="left:0;top:0;width:1872px;height:164px"></canvas>
+  <div id="barin"><img src="avatar.png" alt="" onerror="this.remove()"><span class="title"><span class="prompt">&gt;<span class="cursor">_</span></span> <span class="name"></span></span><span class="live"><i class="dot"></i>LIVE</span><span class="gh"></span><span class="spacer"></span><span class="clock"></span></div></div>
+</section>
+<section class="view" data-v="cam">
+ <div style="position:absolute;left:24px;top:170px;width:1574px;height:886px;box-shadow:inset 0 0 50px 24px #000"></div>
+ <div class="frame" style="left:24px;top:24px;width:1872px;height:1032px"></div>
+ <div class="frame" style="left:48px;top:48px;width:480px;height:270px"></div><div class="tag" style="left:48px;top:48px">SCREEN</div>
+ <div class="panel chat" style="left:1520px;top:48px;width:352px;height:984px"></div>
+ <div class="panel" id="bar" style="top:885px;height:171px;right:424px"><canvas class="px" data-w="468" data-h="41" data-mode="bar" style="left:0;top:0;width:1872px;height:164px"></canvas>
+  <div id="barin"><img src="avatar.png" alt="" onerror="this.remove()"><span class="title"><span class="prompt">&gt;<span class="cursor">_</span></span> <span class="name"></span></span><span class="live"><i class="dot"></i>LIVE</span><span class="gh"></span><span class="spacer"></span><span class="clock"></span></div></div>
+</section>
+<section class="view" data-v="starting"><canvas class="px" data-w="480" data-h="270" data-mode="full" style="inset:0;width:1920px;height:1080px"></canvas><div class="center"><div class="big">STARTING SOON</div><div class="sub">&gt; lighting up<span class="cursor">_</span></div></div></section>
+<section class="view" data-v="brb"><canvas class="px" data-w="480" data-h="270" data-mode="full" style="inset:0;width:1920px;height:1080px"></canvas><div class="center"><div class="big">SMOKE BREAK</div><div class="sub">&gt; be right back<span class="cursor">_</span></div></div></section>
+<section class="view" data-v="ending"><canvas class="px" data-w="480" data-h="270" data-mode="full" style="inset:0;width:1920px;height:1080px"></canvas><div class="center"><div class="big">SESSION CLOSED</div><div class="sub">&gt; thanks for watching<span class="cursor">_</span></div></div></section>
+<section class="view" data-v="nocam">
+ <div class="frame" style="left:24px;top:24px;width:1488px;height:837px"></div>
+ <div class="panel chat" style="left:1536px;top:24px;width:360px;height:837px"></div>
+ <div class="panel" id="bar" style="top:885px;height:171px"><canvas class="px" data-w="468" data-h="41" data-mode="bar" style="left:0;top:0;width:1872px;height:164px"></canvas>
+  <div id="barin"><img src="avatar.png" alt="" onerror="this.remove()"><span class="title"><span class="prompt">&gt;<span class="cursor">_</span></span> <span class="name"></span></span><span class="live"><i class="dot"></i>LIVE</span><span class="gh"></span><span class="spacer"></span><span class="clock"></span></div></div>
+</section>
+<section class="view" data-v="clean"><div class="frame" style="left:24px;top:14px;width:1872px;height:1053px"></div></section>
+<section class="view" data-v="dual">
+ <div class="frame" style="left:24px;top:24px;width:738px;height:837px"></div><div class="tag" style="left:24px;top:24px">SCREEN 1</div>
+ <div class="frame" style="left:774px;top:24px;width:738px;height:837px"></div><div class="tag" style="left:774px;top:24px">SCREEN 2</div>
+ <div class="panel chat" style="left:1536px;top:24px;width:360px;height:837px"></div>
+ <div class="panel" id="bar" style="top:885px;height:171px"><canvas class="px" data-w="468" data-h="41" data-mode="bar" style="left:0;top:0;width:1872px;height:164px"></canvas>
+  <div id="barin"><img src="avatar.png" alt="" onerror="this.remove()"><span class="title"><span class="prompt">&gt;<span class="cursor">_</span></span> <span class="name"></span></span><span class="live"><i class="dot"></i>LIVE</span><span class="gh"></span><span class="spacer"></span><span class="clock"></span></div></div>
+</section>
+<section class="view" data-v="dualcam">
+ <div class="frame" style="left:24px;top:24px;width:738px;height:837px"></div><div class="tag" style="left:24px;top:24px">SCREEN 1</div>
+ <div class="frame" style="left:774px;top:24px;width:738px;height:837px"></div><div class="tag" style="left:774px;top:24px">SCREEN 2</div>
+ <div style="position:absolute;left:1644px;top:24px;width:252px;height:252px;box-shadow:inset 0 0 36px 22px #000"></div>
+ <div class="frame" style="left:1644px;top:24px;width:252px;height:252px"></div><div class="tag" style="left:1644px;top:24px">CAM</div>
+ <div class="panel chat" style="left:1644px;top:300px;width:252px;height:561px"></div>
+ <div class="panel" id="bar" style="top:885px;height:171px"><canvas class="px" data-w="468" data-h="41" data-mode="bar" style="left:0;top:0;width:1872px;height:164px"></canvas>
+  <div id="barin"><img src="avatar.png" alt="" onerror="this.remove()"><span class="title"><span class="prompt">&gt;<span class="cursor">_</span></span> <span class="name"></span></span><span class="live"><i class="dot"></i>LIVE</span><span class="gh"></span><span class="spacer"></span><span class="clock"></span></div></div>
+</section>
+<section class="view" data-v="dualterm">
+ <div class="frame" style="left:24px;top:24px;width:738px;height:837px"></div><div class="tag" style="left:24px;top:24px">OBS</div>
+ <div class="frame" style="left:774px;top:24px;width:738px;height:837px"></div><div class="tag" style="left:774px;top:24px">AGENCY OS</div>
+ <div style="position:absolute;left:1644px;top:24px;width:252px;height:252px;box-shadow:inset 0 0 36px 22px #000"></div>
+ <div class="frame" style="left:1644px;top:24px;width:252px;height:252px"></div><div class="tag" style="left:1644px;top:24px">CAM</div>
+ <div class="panel chat" style="left:1644px;top:300px;width:252px;height:561px"></div>
+ <div class="panel" id="bar" style="top:885px;height:171px"><canvas class="px" data-w="468" data-h="41" data-mode="bar" style="left:0;top:0;width:1872px;height:164px"></canvas>
+  <div id="barin"><img src="avatar.png" alt="" onerror="this.remove()"><span class="title"><span class="prompt">&gt;<span class="cursor">_</span></span> <span class="name"></span></span><span class="live"><i class="dot"></i>LIVE</span><span class="gh"></span><span class="spacer"></span><span class="clock"></span></div></div>
+</section>
+<section class="view" data-v="private"><canvas class="px" data-w="480" data-h="270" data-mode="full" style="inset:0;width:1920px;height:1080px"></canvas><div class="center"><div class="big">PRIVATE</div><div class="sub">&gt; swapping keys, back in a sec<span class="cursor">_</span></div></div></section>
+<section class="view" data-v="haze"><canvas class="px" data-w="480" data-h="270" data-mode="haze" style="inset:0;width:1920px;height:1080px"></canvas></section>
+<section class="view" data-v="bg"><canvas class="px" data-w="480" data-h="270" data-mode="bg" style="inset:0;width:1920px;height:1080px"></canvas></section>
+<script src="config.js"></script>
+<script>
+const v=new URLSearchParams(location.search).get("v")||"main",S=window.STREAM||{};
+const root=document.querySelector(`[data-v="${v}"]`);root.style.display="block";
+root.querySelectorAll(".name").forEach(e=>e.textContent=S.TITLE||"");
+root.querySelectorAll(".gh").forEach(e=>{if(S.LINK)e.textContent=S.LINK;else e.remove()});
+const ck=root.querySelector(".clock");
+if(ck){const t=()=>ck.textContent=new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});t();setInterval(t,5000)}
+
+/* pixel smoke + skyline, 10 fps on a tiny canvas so it stays cheap */
+const rng=s=>()=>(s=(s*1664525+1013904223)>>>0)/4294967296;
+const hash=(x,y)=>{let n=Math.imul(x,374761393)+Math.imul(y,668265263)|0;n=Math.imul(n^n>>>13,1274126177);return((n^n>>>16)>>>0)/4294967296};
+const lerp=(a,b,t)=>a+(b-a)*t,fade=t=>t*t*(3-2*t);
+function noise(x,y){const i=Math.floor(x),j=Math.floor(y),f=fade(x-i),g=fade(y-j);return lerp(lerp(hash(i,j),hash(i+1,j),f),lerp(hash(i,j+1),hash(i+1,j+1),f),g)}
+const fbm=(x,y)=>noise(x,y)*.6+noise(x*2.1,y*2.1)*.28+noise(x*4.3,y*4.3)*.12;
+function skyline(w,base,maxH,seed){const r=rng(seed),b=[];let x=0;while(x<w){const bw=8+Math.floor(r()*16),h=8+Math.floor(r()*r()*maxH),win=[];
+ for(let yy=base-h+3;yy<base-2;yy+=3)for(let xx=x+2;xx<x+bw-2;xx+=3)if(r()<.26)win.push([xx,yy,r()]);
+ b.push({x,w:bw,h,win,spire:r()<.16});x+=bw+Math.floor(r()*3)}return b}
+const SHADES=[null,"#1b1b1b","#2f2f2f","#474747","#626262","#7e7e7e"],DIM=[null,"#0c0c0c","#121212","#191919","#212121","#2a2a2a"],HAZE=[null,"rgba(10,10,10,.34)","rgba(16,16,16,.44)","rgba(24,24,24,.54)","rgba(34,34,34,.64)","rgba(46,46,46,.74)"];
+function initPx(c){const w=+c.dataset.w,h=+c.dataset.h,mode=c.dataset.mode;c.width=w;c.height=h;const g=c.getContext("2d");
+ const full=mode!=="bar",hero=mode==="full",base=full?228:h,city=skyline(w,base,full?66:30,full?77:41);
+ const haze=mode==="haze",cx=hero?240:full?240:330,cy=haze?135:hero?70:full?100:12,rx=hero?135:full?330:150,ry=haze?210:hero?56:full?125:15;let f=0;
+ function draw(){f++;const t=f*.035;g.clearRect(0,0,w,h);g.fillStyle=haze?"rgba(0,0,0,.38)":"#000";g.fillRect(0,0,w,h);
+  const stack=city.find(b=>b.x<=92&&b.x+b.w>92),tailY=stack?base-stack.h:190,top=0,bot=hero?tailY:haze?h:full?base:h;
+  for(let y=top;y<bot;y+=full?2:1)for(let x=0;x<w;x+=full?2:1){
+   let dx=(x-cx)/rx,dy=(y-cy)/ry,d=dx*dx+dy*dy;
+   if(hero&&y>cy){const up=tailY-y,xc=92+up*.42+Math.sin(y*.09+t)*2,wd=2.5+up*.17,e=(x-xc)/wd;d=Math.min(d,e*e*.8)}
+   if(d>1.25)continue;
+   const n=fbm(x*.022-t*.5,y*.03+t*.14)+(1-d)*.42;const lv=Math.floor((n-.46)*(full?12:9));
+   if(lv<1)continue;g.fillStyle=(haze?HAZE:mode==="bg"?DIM:SHADES)[Math.min(5,lv)];g.fillRect(x,y,full?2:1,full?2:1)}
+  if(haze)return;
+  for(const b of city){g.fillStyle="#0e0e0e";g.fillRect(b.x,base-b.h,b.w,b.h);if(b.spire)g.fillRect(b.x+(b.w>>1),base-b.h-7,1,7);
+   for(const[wx,wy,s]of b.win){const on=hash(Math.floor(s*997),Math.floor(f/40))>.1;g.fillStyle=on?(s>.55?"#ff8a00":"#b35a00"):"#2a1600";g.fillRect(wx,wy,1,2)}}
+  if(full){for(let y=base;y<h;y++){const a=(y-base)/(h-base);for(const b of city)for(const[wx,wy,s]of b.win){if(hash(wx,y+(f>>2))>.34-a*.25)continue;const my=base+(base-wy)*.6;if(Math.abs(my-y)<7){g.fillStyle=s>.55?"#6b3a00":"#3d2100";g.fillRect(wx,y,2,1)}}}
+   g.fillStyle="#262626";g.fillRect(0,base,w,1);
+   if(!hero)return;
+   const P=[[0,0],[1,1],[2,2],[3,3],[4,4],[3,5],[2,6],[1,7],[0,8]],ox=cx-14,oy=cy-11,sz=3;
+   for(const[gr,gy,col]of[[38,25,"#1a1208"],[31,20,"#2b1a08"],[23,15,"#47290a"]])for(let y=-gy;y<=gy;y+=2){const hw=Math.floor(gr*Math.sqrt(1-y*y/(gy*gy))/2)*2;g.fillStyle=col;g.fillRect(cx-hw,cy+y,hw*2,2)}
+   g.fillStyle="#ff9a1a";for(const[a,b]of P)g.fillRect(ox+a*sz,oy+b*sz,sz*2,sz);
+   if(f%14<10)g.fillRect(ox+18,oy+24,16,4)}}
+ draw();setInterval(draw,100)}
+document.fonts.ready.finally(()=>root.querySelectorAll("canvas.px").forEach(initPx));
+
+const box=root.querySelector(".chat");
+if(box){const i=document.createElement("div");i.className="idle";i.id="idle";i.innerHTML='&gt; chat idle<span class="cursor">_</span>';box.append(i)}
+/*IRC-START*/
+const SPAM=/remove the space|best viewers|cheap viewers|buy (followers|viewers|views)|twitch\s*\.\s*ad\b|(https?:\/\/|www\.)\S+/i;
+function tags(s){return Object.fromEntries(s.split(";").map(x=>x.split("=")))}
+function parseIrc(l){
+ let m=l.match(/^@(\S+) :(\w+)!\S+ PRIVMSG #\S+ :(.*)$/);
+ if(m){const t=tags(m[1]);return{type:"msg",name:t["display-name"]||m[2],text:m[3],uid:t["user-id"],mid:t.id}}
+ m=l.match(/^@(\S+) :tmi\.twitch\.tv CLEARCHAT #\S+(?: :(\S+))?$/);
+ if(m)return m[2]?{type:"ban",uid:tags(m[1])["target-user-id"]}:{type:"clear"};
+ m=l.match(/^@(\S+) :tmi\.twitch\.tv CLEARMSG #\S+ :/);
+ if(m)return{type:"del",mid:tags(m[1])["target-msg-id"]};
+ return null}
+/*IRC-END*/
+function add(name,text,uid,mid){if(SPAM.test(text))return;document.getElementById("idle")?.remove();const d=document.createElement("div"),n=document.createElement("span");n.className="n";n.textContent=name+" ";d.dataset.uid=uid||"";d.dataset.mid=mid||"";d.append(n,text);box.append(d);while(box.children.length>30)box.firstChild.remove()}
+function drop(sel){box.querySelectorAll(sel).forEach(x=>x.remove())}
+function connect(){const ch=(S.CHANNEL||"").trim().toLowerCase();if(!box||!ch)return;
+ const w=new WebSocket("wss://irc-ws.chat.twitch.tv:443");
+ w.onopen=()=>{w.send("CAP REQ :twitch.tv/tags twitch.tv/commands");w.send("PASS SCHMOOPIIE");w.send("NICK justinfan"+Math.floor(1e4+Math.random()*8e4));w.send("JOIN #"+ch)};
+ w.onmessage=e=>e.data.split("\r\n").forEach(l=>{if(l.startsWith("PING")){w.send("PONG :tmi.twitch.tv");return}
+  const a=parseIrc(l);if(!a)return;
+  if(a.type==="msg")add(a.name,a.text,a.uid,a.mid);
+  else if(a.type==="ban"&&a.uid)drop('[data-uid="'+CSS.escape(a.uid)+'"]');
+  else if(a.type==="del"&&a.mid)drop('[data-mid="'+CSS.escape(a.mid)+'"]');
+  else if(a.type==="clear")box.replaceChildren()});
+ w.onclose=()=>setTimeout(connect,5000)}
+connect();
+</script></body></html>
